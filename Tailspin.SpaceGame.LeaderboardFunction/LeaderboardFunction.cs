@@ -1,14 +1,11 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using TailSpin.SpaceGame.LeaderboardFunction;
-using System.Linq.Expressions;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -65,10 +62,9 @@ namespace Tailspin.SpaceGame.LeaderboardFunction
             };
 
             // Form the query predicate.
-            // This expression selects all scores that match the provided game 
-            // mode and region (map).
+            // Select all scores that match the provided game mode and region (map).
             // Select the score if the game mode or region is empty.
-            Expression<Func<Score, bool>> queryPredicate = score =>
+            Func<Score, bool> queryPredicate = score =>
                 (string.IsNullOrEmpty(mode) || score.GameMode == mode) &&
                 (string.IsNullOrEmpty(region) || score.GameRegion == region);
 

@@ -11,17 +11,17 @@ stages:
   - job: 'Build'
     displayName: 'Build job'
     pool:
-      vmImage: 'ubuntu-18.04'
+      vmImage: 'ubuntu-20.04'
       demands:
       - npm
 
     variables:
       wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
-      dotnetSdkVersion: '3.1.300'
+      dotnetSdkVersion: '6.0.x'
 
     steps:
     - task: UseDotNet@2
-      displayName: 'Use .NET Core SDK $(dotnetSdkVersion)'
+      displayName: 'Use .NET SDK $(dotnetSdkVersion)'
       inputs:
         version: '$(dotnetSdkVersion)'
 
@@ -71,7 +71,7 @@ stages:
   jobs:
   - deployment: Deploy
     pool:
-      vmImage: 'ubuntu-18.04'
+      vmImage: 'ubuntu-20.04'
     environment: spike
     variables:
     - group: Release
@@ -88,7 +88,6 @@ stages:
               appName: '$(WebAppName)'
               appType: webAppLinux
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/Tailspin.SpaceGame.Web.zip'
-
           - task: AzureFunctionApp@1
             displayName: 'Azure Function Deploy: leaderboard'
             inputs:
@@ -96,20 +95,19 @@ stages:
               appType: functionAppLinux
               appName: '$(LeaderboardAppName)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/Tailspin.SpaceGame.LeaderboardFunction.zip'
-              runtimeStack: DOCKER|microsoft/azure-functions-dotnet-core3.0:3.0
+              runtimeStack: DOCKER|microsoft/azure-functions-dotnet:4
               startUpCommand: 'func azure functionapp publish $(functionAppName) --no-bundler'
-
           - task: AzureAppServiceSettings@1
             displayName: 'Update web app settings'
             inputs:
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
               appName: $(WebAppName)
               resourceGroupName: $(ResourceGroupName)
-              appSettings: | 
-               [
-                {
-                 "name": "AppSettings:LeaderboardFunctionUrl",
-                 "value": "http://$(LeaderboardAppName).azurewebsites.net/api/LeaderboardFunction",
-                 "slotSetting": false
-                }
-               ]
+              appSettings: |
+                [
+                  {
+                    "name": "AppSettings__LeaderboardFunctionUrl",
+                    "value": "http://$(LeaderboardAppName).azurewebsites.net/api/LeaderboardFunction",
+                    "slotSetting": false
+                  }
+                ]
